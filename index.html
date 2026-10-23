@@ -147,6 +147,8 @@ button.cell{font:inherit}
 .catpanel>h2 .t{display:flex;flex-direction:column;align-items:center}
 .catpanel>h2 .sub{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
 .catpanel p{font-family:var(--f-display);font-size:15px;line-height:1.85;color:var(--ink2);margin:0 0 10px}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top,0px));z-index:40;display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--gold);border-radius:999px;padding:6px 6px 6px 16px;font-size:14px;color:var(--ink);white-space:nowrap}
+.updbar .btn{padding:6px 14px;border-radius:999px;font-size:13px}
 /* 질문 카드 (아코디언) */
 .acc{display:flex;flex-direction:column;gap:8px}
 .acc-item{border:1px solid var(--line);border-radius:8px;background:var(--surface);transition:border-color .15s}
@@ -1616,6 +1618,23 @@ document.addEventListener('click',e=>{
   }
 });
 render();
+// ---------- 새 버전 확인 (GitHub 주소에서만) ----------
+const APP_VER='20261023072405';
+async function checkUpdate(){
+  if(window.claude||!/^https?:$/.test(location.protocol)||APP_VER.startsWith('__'))return;
+  try{
+    const res=await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'});if(!res.ok)return;
+    const m=(await res.text()).match(/const APP_VER='([^']+)'/);
+    if(m&&m[1]!==APP_VER&&!document.getElementById('upd')){
+      const b=document.createElement('div');b.id='upd';b.className='updbar';
+      b.innerHTML='<span>새 버전이 있어요</span><button class="btn primary" type="button">업데이트</button>';
+      b.querySelector('button').onclick=()=>location.replace(location.pathname+'?v='+m[1]);
+      document.body.appendChild(b);
+    }
+  }catch(e){}
+}
+checkUpdate();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
 })();
 </script>
 

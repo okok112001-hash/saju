@@ -147,6 +147,27 @@ button.cell{font:inherit}
 .catpanel>h2 .t{display:flex;flex-direction:column;align-items:center}
 .catpanel>h2 .sub{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
 .catpanel p{font-family:var(--f-display);font-size:15px;line-height:1.85;color:var(--ink2);margin:0 0 10px}
+/* 질문 카드 (아코디언) */
+.acc{display:flex;flex-direction:column;gap:8px}
+.acc-item{border:1px solid var(--line);border-radius:8px;background:var(--surface);transition:border-color .15s}
+.acc-item.open{border-color:var(--gold-dim);background:var(--surface2)}
+.acc-q{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:13px 14px;border:0;background:none;text-align:left;color:var(--ink);border-radius:8px}
+.acc-q:active{background:var(--surface2)}
+.acc-ic{width:38px;height:38px;border-radius:6px;border:1px solid var(--gold-dim);display:grid;place-items:center;font-family:var(--f-hanja);font-weight:900;color:var(--gold);font-size:18px;line-height:1}
+.acc-item.open .acc-ic{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+.acc-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.acc-t b{font-family:var(--f-display);font-size:16px;font-weight:700;line-height:1.35;text-wrap:balance}
+.acc-t small{font-size:12.5px;color:var(--muted);line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.acc-item.open .acc-t small{color:var(--gold)}
+.acc-chev{width:9px;height:9px;border-right:1.5px solid var(--gold-dim);border-bottom:1.5px solid var(--gold-dim);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s;margin-right:4px}
+.acc-item.open .acc-chev{transform:rotate(225deg) translate(-2px,-2px);border-color:var(--gold)}
+.acc-a{padding:4px 16px 18px;border-top:1px solid var(--line);margin:0 2px}
+.acc-a p{font-family:var(--f-display);font-size:15px;line-height:1.85;color:var(--ink2);margin:10px 0 0}
+.acc-a .subh{margin-top:18px}
+.acc-a .luck{margin-top:14px}
+.acc-a .mlist{margin-top:4px}
+.yearpanel .acc{margin-top:4px}
+.capturing .acc-item.open{border-color:var(--line)}
 /* 소제목 · 월별 */
 .subh{font-family:var(--f-display);font-size:15px;font-weight:700;color:var(--gold);margin:18px 0 6px;display:flex;align-items:center;gap:8px}
 .subh::before{content:"";width:4px;height:4px;background:var(--gold);transform:rotate(45deg);flex:none}
@@ -940,7 +961,7 @@ const SajuInterp = (function () {
     pr(year, month, '년지와 월지가 충해 어린 시절 환경에 변화가 있었거나 일찍 독립하는 경향이 있다고 봐요.', '년지와 월지가 합을 이뤄 집안과 사회의 도움을 고루 받는 편이에요.');
     pr(day, hour, '일지와 시지가 충해 나이가 들수록 생활에 변화를 주고 싶은 마음이 커질 수 있어요.', '일지와 시지가 합을 이뤄 가정과 미래 계획이 잘 맞물리는 흐름이에요.');
     if (inter.length) { ov.push(H('글자 사이의 관계')); inter.forEach(t => ov.push(t)); }
-    out.push({ key: 'overview', title: '총평', paras: ov });
+    out.push({ key: 'overview', title: '총평', hint: `${gzK(day)}일주 · ${SEASON_NAME[se]}에 태어난 ${EL[myEl]}`, paras: ov });
 
     // 성격
     const per = [H(`${d.name}(${d.icon})의 기질`), d.core, `강점은 ${d.good}입니다. ${d.care}`];
@@ -948,7 +969,7 @@ const SajuInterp = (function () {
     const strongG = Object.keys(g).filter(k => g[k] >= 3), noneG = Object.keys(g).filter(k => g[k] === 0);
     if (strongG.length || noneG.length) { per.push(H('두드러진 성향')); strongG.forEach(k => per.push(GROUP[k].strong)); noneG.slice(0, 2).forEach(k => per.push(GROUP[k].none)); }
     per.push(H('겉과 속'), `겉으로 드러나는 월간은 ${month.stemTG}, 속마음을 뜻하는 일지는 ${j(day.brTG, '이에요', '예요')}. ${month.stemTG === day.brTG ? '겉과 속이 같은 기운이라 보이는 모습과 실제 마음이 크게 다르지 않은 솔직한 타입이에요.' : E.TG_GROUP[month.stemTG] === E.TG_GROUP[day.brTG] ? '겉과 속이 비슷한 계열이라 처음 인상과 알고 난 뒤의 모습이 크게 다르지 않아요.' : `처음에는 ${E.TG_GROUP[month.stemTG]}의 모습으로 보이지만, 가까워질수록 ${E.TG_GROUP[day.brTG]}의 면이 드러나 반전 매력이 있다는 말을 듣기 쉬워요.`}`);
-    out.push({ key: 'personality', title: '성격', paras: per });
+    out.push({ key: 'personality', title: '성격', hint: `${d.name} · ${d.icon}의 기질`, paras: per });
 
     // 재물
     const jae = g.재성;
@@ -968,7 +989,7 @@ const SajuInterp = (function () {
     const jd = r.daeun.filter(x => hasGroup(x, '재성') && x.age + 9 >= age).slice(0, 3);
     money.push(H('재물운이 강해지는 시기'));
     money.push(jd.length ? `대운으로 보면 ${jd.map(x => `${ageRange(x)}(${gzK(x)} 대운)`).join(', ')}에 재물의 기운이 들어와요. 이 시기에 수입을 늘리고 자산을 만들 기회가 커진다고 봐요.` : '앞으로의 대운에서는 재성이 직접 들어오지 않아요. 큰 한 방보다 실력과 신뢰를 쌓아 꾸준히 버는 방식이 더 맞는 흐름입니다.');
-    out.push({ key: 'money', title: '재물', paras: money });
+    out.push({ key: 'money', title: '재물', hint: jd.length ? `재물운이 커지는 때 · ${ageRange(jd[0])}` : '재물 그릇과 돈 버는 방식', paras: money });
 
     // 직업
     const order = ['관성', '식상', '재성', '인성', '비겁'];
@@ -979,7 +1000,7 @@ const SajuInterp = (function () {
     if (g.식상 >= 2 && g.관성 >= 2) job.push('표현하려는 기운과 규칙의 기운이 모두 강해 조직 안에서 답답함을 느낄 수 있어요. 재량이 있는 역할을 고르면 좋습니다.');
     const cd = r.daeun.filter(x => (hasGroup(x, '관성') || E.TG_GROUP[x.stemTG] === '인성') && x.age + 9 >= age).slice(0, 3);
     job.push(H('일에서 도약하는 시기'), cd.length ? `${cd.map(x => `${ageRange(x)}(${gzK(x)} 대운)`).join(', ')}에 자리와 명예, 배움의 기운이 들어와요. 승진, 자격 취득, 역할 확대 같은 변화가 생기기 좋은 시기로 봐요.` : '앞으로의 대운에서는 관성·인성이 크게 들어오지 않아요. 남이 정해 준 자리보다 내 실력과 이름으로 일하는 방식이 더 잘 맞는 흐름입니다.');
-    out.push({ key: 'career', title: '직업', paras: job });
+    out.push({ key: 'career', title: '직업', hint: CAREER_G[top].replace(/\(.*\)/, '').trim(), paras: job });
 
     // 연애
     const star = starGroup(r), starN = g[star];
@@ -994,7 +1015,7 @@ const SajuInterp = (function () {
     if (pillarsOf(r).some(p => p.key !== 'day' && E.brRel(p.b, day.b).includes('충'))) love.push('배우자 자리(일지)를 다른 글자가 충하고 있어 관계에 변화가 생기기 쉬워요. 서로의 공간과 시간을 존중하면 안정됩니다.');
     const ly = []; for (let Y = nowY; Y < nowY + 10 && ly.length < 4; Y++) { const p = E.yearPillar(Y, dm); if (hasGroup(p, star)) ly.push(`${Y}년(${gzK(p)})`); }
     love.push(H('인연의 기운이 들어오는 해'), ly.length ? `앞으로 10년 중 ${ly.join(', ')}에 인연의 별이 들어와요. 새로운 만남이나 관계의 진전이 생기기 쉬운 해로 봐요.` : '앞으로 10년 안에는 인연의 별이 해마다 직접 들어오지는 않아요. 대신 사람을 많이 만나는 환경을 직접 만드는 것이 인연을 부르는 방법이에요.');
-    out.push({ key: 'love', title: '연애', paras: love });
+    out.push({ key: 'love', title: '연애', hint: ly.length ? `인연의 해 · ${ly.slice(0, 2).map(x => x.slice(0, 4)).join('·')}년` : '연애 스타일과 배우자 자리', paras: love });
 
     // 건강
     const health = ['오행의 많고 적음으로 전통적으로 연결 짓는 부분이에요. 실제 건강은 검진과 생활 습관으로 판단하세요.', H('타고난 체질'), HEALTH_DM[myEl]];
@@ -1004,14 +1025,14 @@ const SajuInterp = (function () {
     lack.forEach(i => health.push(`${EL[i]} 기운이 없어 ${ORGAN[i].o} 쪽이 상대적으로 약할 수 있다고 봐요. ${j(ORGAN[i].tip, '을', '를')} 챙기세요.`));
     if (!over.length && !lack.length) health.push('오행이 비교적 고르게 분포되어 있어 특별히 치우친 곳은 없어요. 규칙적인 생활이 가장 좋은 관리입니다.');
     health.push(H('계절 관리'), `${SEASON_NAME[se]}에 태어난 사람이라 ${['봄철 환절기에 기운이 들뜨기 쉬우니 수면 리듬을 지키세요.', '더위에 지치기 쉬우니 여름철 수분과 휴식을 넉넉히 챙기세요.', '건조한 가을에 호흡기와 피부를 특히 챙기세요.', '추위에 약해지기 쉬우니 겨울철 보온과 순환에 신경 쓰세요.'][se]}`);
-    out.push({ key: 'health', title: '건강', paras: health });
+    out.push({ key: 'health', title: '건강', hint: over.length ? `${over.map(i => EL[i]).join('·')} 기운이 많은 체질` : lack.length ? `${lack.map(i => EL[i]).join('·')} 기운이 없는 체질` : '타고난 체질과 계절 관리', paras: health });
 
     // 신살
     const ss = sinsal(r);
     const sp = ['신살은 사주에 붙는 특별한 별이에요. 좋고 나쁨을 단정하기보다 타고난 개성으로 보는 것이 요즘의 해석이에요.'];
     if (ss.length) ss.forEach(s => sp.push(H(`${s.name} · ${s.where.join('·')}`), SINSAL[s.name]));
     else sp.push('대표적인 신살이 두드러지지 않아요. 특정한 별에 치우치지 않아 사주 전체의 균형으로 운을 읽는 타입이에요.');
-    out.push({ key: 'sinsal', title: '신살', paras: sp });
+    out.push({ key: 'sinsal', title: '신살', hint: ss.length ? ss.map(x => x.name).join('·') : '두드러진 신살 없음', paras: sp });
 
     // 대운
     const du = [];
@@ -1022,11 +1043,11 @@ const SajuInterp = (function () {
     } else du.push(H('첫 대운 전'), `첫 대운은 ${r.daeun[0].age}세에 시작돼요. 그 전까지는 타고난 원국의 기운이 그대로 드러나는 시기예요.`);
     du.push(H('인생 전체의 흐름'));
     r.daeun.slice(0, 9).forEach(x => du.push(`${ageRange(x)} · ${gzK(x)} 대운 — ${DAEUN_SHORT[E.TG_GROUP[x.stemTG]]}${x === curD ? ' (지금)' : ''}`));
-    out.push({ key: 'daeun', title: '대운', paras: du });
+    out.push({ key: 'daeun', title: '대운', hint: curD ? `지금 ${gzK(curD)} 대운 · ${DAEUN_SHORT[E.TG_GROUP[curD.stemTG]]}` : `첫 대운 ${r.daeun[0].age}세부터`, paras: du });
 
     // 개운법
     const he = helpEl(r), G = GAEUN[he], L = LUCK[he];
-    out.push({ key: 'gaeun', title: '개운법', paras: [
+    out.push({ key: 'gaeun', title: '개운법', hint: `${EL[he]} 기운 · ${L.color}, ${L.dir}`, paras: [
       `내 사주의 균형을 맞추는 데 도움이 되는 기운은 ${j(EL[he], '이에요', '예요')}. 전통적으로 이 기운과 연결된 것들을 가까이하면 운의 흐름이 부드러워진다고 봐요.`,
       H('색과 방향'), `${L.color} 계열의 옷이나 소품, ${L.dir} 방향, 숫자 ${L.num}이 잘 맞아요.`,
       H('음식'), `${j(G.food, '이', '가')} ${EL[he]} 기운과 연결돼요.`,
@@ -1146,7 +1167,7 @@ const SajuInterp = (function () {
     const ec = r.elCount;
     [...new Set([E.stemEl(p.s), E.BR_EL[p.b]])].filter(e => ec[e] >= 3).forEach(e => cond.push(`이미 많은 ${EL[e]} 기운이 더해지는 날이라 ${ORGAN[e].o} 쪽을 무리하지 않게 하세요.`));
     cond.push(HEALTH_DM[E.stemEl(dm)]);
-    sec.push({ title: '컨디션', paras: cond });
+    sec.push({ title: '컨디션', head: TODAY_STAGE[p.stage].split('. ')[0].replace(/\.$/, '') + '.', paras: cond });
     // 시간대
     const good = [], bad = [];
     for (let b = 0; b < 12; b++) {
@@ -1387,6 +1408,8 @@ const secTitle=(t,sub)=>`<h2><span class="t">${t}${sub?`<span class="sub">${sub}
 const paraHTML=t=>typeof t==='string'?`<p>${esc(t)}</p>`:`<h4 class="subh">${esc(t.h)}</h4>`;
 const parasHTML=a=>a.map(paraHTML).join('');
 const secHTML=s=>`<div class="rsec">${secTitle(s.title,s.sub)}${parasHTML(s.paras)}</div>`;
+const firstSent=t=>{const m=String(t).match(/^.*?(요|다)\./);return m?m[0]:String(t)};
+function accHTML(items,open,attr){return `<div class="acc">${items.map(it=>{const on=it.key===open;return `<div class="acc-item ${on?'open':'nocap'}"><button class="acc-q" data-${attr}="${esc(it.key)}" aria-expanded="${on}"><span class="acc-ic" aria-hidden="true">${it.icon}</span><span class="acc-t"><b>${esc(it.q)}</b><small>${esc(it.hint||'')}</small></span><span class="acc-chev" aria-hidden="true"></span></button>${on?`<div class="acc-a">${it.body}</div>`:''}</div>`}).join('')}</div>`}
 const tabsHTML=(list,cur,attr,label)=>`<div class="cats nocap" role="tablist" aria-label="${label}">${list.map(([k,t])=>`<button role="tab" data-${attr}="${k}" aria-selected="${k===cur}">${t}</button>`).join('')}</div>`;
 function viewResult(){
   const p=S.people.find(x=>x.id===S.cur);if(!p){S.view='list';return render()}
@@ -1400,8 +1423,12 @@ function viewResult(){
   const yf=I.yearFortune(r,Y);
   const curDae=r.daeun.slice().reverse().find(x=>nowY>=x.startYear);
   const sections=I.natal(r,nowY);
-  const nat=sections.find(x=>x.key===S.natCat)||sections[0];
-  const YC=['총운','재물','직업','연애','건강','월별'];const ycat=YC.includes(S.yearCat)?S.yearCat:'총운';
+  const NQ={overview:['命','내 사주를 한마디로 하면?'],personality:['性','나는 어떤 사람일까?'],money:['財','나는 돈을 언제 크게 벌까?'],career:['業','나에게 맞는 일은 뭘까?'],love:['緣','내 인연은 언제, 어떤 사람일까?'],health:['康','몸은 어디를 조심해야 할까?'],sinsal:['星','나에게 붙은 특별한 별은?'],daeun:['運','지금은 인생의 어떤 시기일까?'],gaeun:['福','운을 끌어올리는 방법은?']};
+  const natItems=sections.map(x=>({key:x.key,icon:NQ[x.key][0],q:NQ[x.key][1],hint:x.hint,body:parasHTML(x.paras)}));
+  const YQ={총운:['年',`${Y}년, 나에게 어떤 해일까?`],재물:['財',`${Y}년 돈의 흐름은 어떨까?`],직업:['業','일에서 기회가 찾아올까?'],연애:['緣',`${Y}년에 인연이 찾아올까?`],건강:['康','몸은 어떻게 챙겨야 할까?']};
+  const goodM=yf.months.filter(mm=>mm.mark==='좋음').map(mm=>mm.m+'월');
+  const monthsHTML=`<p class="small muted" style="margin:0 0 8px">달은 매달 4~8일 무렵의 절기에서 바뀌어요.</p><ul class="mlist">${yf.months.map(mm=>`<li><span class="mm">${mm.nextYear?`${Y+1}년 `:''}${mm.m}월</span><span class="mg">${mm.gz} · ${mm.tg}</span><span class="mk ${mm.mark==='좋음'?'good':mm.mark==='주의'?'warn':''}">${mm.mark}</span><span class="mt">${esc(mm.text)}</span></li>`).join('')}</ul>`;
+  const yearItems=[...yf.tabs.map(x=>({key:x.key,icon:YQ[x.key][0],q:YQ[x.key][1],hint:x.key==='총운'?yf.title:firstSent(x.paras[0]),body:parasHTML(x.paras)})),{key:'월별',icon:'月',q:'몇 월이 가장 좋을까?',hint:goodM.length?`좋은 달 · ${goodM.join('·')}`:'열두 달의 흐름',body:monthsHTML}];
   const b=r.basis;
   const lunarTxt=r.lunar?`음력 ${r.lunar.y}.${r.lunar.m}.${r.lunar.d}${r.lunar.leap?' (윤달)':''}`:'';
   const fmtUtcK=ms=>{const t=new Date(ms+9*3600e3);return `${t.getUTCFullYear()}.${t.getUTCMonth()+1}.${t.getUTCDate()} ${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}`};
@@ -1423,17 +1450,15 @@ function viewResult(){
     <section class="stack" style="gap:8px"><div class="sechead"><h3>대운 · ${r.daeunForward?'순행':'역행'} · 대운수 ${r.daeun[0].age}</h3></div>
       <div class="hscroll" id="daeun">${r.daeun.map(x=>`<div class="cell ${curDae===x?'now':''}"><span class="a">${x.age}세</span>${chip(x.s,true,'s')}${chip(x.b,false,'s')}<span class="t">${x.stemTG}</span></div>`).join('')}</div></section>
     <section class="stack natbox" style="gap:14px">
-      ${secTitle('사주 풀이','항목을 누르면 해당 풀이만 볼 수 있어요')}
-      ${tabsHTML(sections.map(x=>[x.key,x.title]),nat.key,'nat','풀이 항목')}
-      <div class="catpanel" role="tabpanel"><div class="rsec">${secTitle(nat.title)}${parasHTML(nat.paras)}</div></div>
+      ${secTitle('사주 풀이','궁금한 질문을 눌러 보세요')}
+      ${accHTML(natItems,S.natCat,'nat')}
     </section>
     <section class="yearbox" id="yearbox">
       ${secTitle('연도별 운세','연도를 누르면 아래에 바로 풀이가 바뀌어요')}
       <div class="hscroll seun" id="seun" role="tablist" aria-label="연도 선택">${Array.from({length:12},(_,k)=>nowY-2+k).map(yy=>{const q=E.yearPillar(yy,r.dayMaster);return `<button class="cell ${yy===Y?'now':''}" data-year="${yy}" role="tab" aria-selected="${yy===Y}"><span class="a">${yy===nowY?'올해':yy}</span>${chip(q.s,true,'s')}${chip(q.b,false,'s')}<span class="t">${q.stemTG}</span></button>`}).join('')}</div>
       <div class="yearpanel" role="tabpanel">
         <div class="yeartitle"><span class="y">${Y}년 ${E.STEM_K[yf.pillar.s]}${E.BR_K[yf.pillar.b]}년</span><span class="k">${yf.title}</span></div>
-        ${tabsHTML(YC.map(k=>[k,k]),ycat,'ycat','연도별 운세 항목')}
-        <div class="ypbody">${ycat==='월별'?`<p class="small muted" style="margin:0 0 8px">달은 매달 4~8일 무렵의 절기에서 바뀌어요.</p><ul class="mlist">${yf.months.map(mm=>`<li><span class="mm">${mm.nextYear?`${Y+1}년 `:''}${mm.m}월</span><span class="mg">${mm.gz} · ${mm.tg}</span><span class="mk ${mm.mark==='좋음'?'good':mm.mark==='주의'?'warn':''}">${mm.mark}</span><span class="mt">${esc(mm.text)}</span></li>`).join('')}</ul>`:parasHTML(yf.tabs.find(x=>x.key===ycat).paras)}</div>
+        ${accHTML(yearItems,S.yearCat,'ycat')}
       </div>
     </section>
     <p class="capfoot">萬歲曆 · 우리끼리 만세력</p>
@@ -1495,8 +1520,12 @@ function viewToday(){
   if(!r.error){
     r.input.name=P.name;
     const t=I.today(r,y,m,d);
-    const cats=[...t.sections.map(x=>x.title),'행운'];
-    const cat=cats.includes(S.todayCat)?S.todayCat:'총운';
+    const TQ={'총운':['日','오늘 하루, 어떤 날일까?'],'일·공부':['業','오늘 일과 공부는 잘 풀릴까?'],'재물':['財','오늘 돈 쓸 일, 괜찮을까?'],'관계·연애':['緣','오늘 사람 운은 어떨까?'],'컨디션':['康','오늘 컨디션은 어떨까?']};
+    const luckBody=`<div class="luck"><div><b>${t.luck.color}</b><span>색</span></div><div><b>${t.luck.dir}</b><span>방향</span></div><div><b>${t.luck.num}</b><span>숫자</span></div></div>
+          <h4 class="subh">좋은 시간</h4><p>${t.luck.good.length?`${t.luck.good.join(', ')}에 중요한 연락이나 결정을 하면 좋아요.`:'오늘은 특별히 기운이 몰리는 낮 시간대가 없어요. 컨디션이 좋은 때를 골라 움직이세요.'}</p>
+          ${t.luck.bad.length?`<h4 class="subh">조심할 시간</h4><p>${t.luck.bad.join(', ')}에는 일지와 부딪히는 기운이 들어와요. 큰 결정과 다툼은 피하세요.</p>`:''}
+          <h4 class="subh">오늘 해 보면 좋은 것</h4><p>${esc(t.luck.act)} 같은 활동이 오늘의 기운을 채워 줘요. 음식은 ${esc(t.luck.food)} 쪽이 잘 맞아요.</p>`;
+    const todayItems=[...t.sections.map(x=>({key:x.title,icon:TQ[x.title][0],q:TQ[x.title][1],hint:x.head||firstSent(x.paras[0]),body:parasHTML(x.paras)})),{key:'행운',icon:'福',q:'오늘의 행운 포인트는?',hint:`${t.luck.color} · ${t.luck.dir} · ${t.luck.good.length?t.luck.good[0].replace(/\(.*\)/,''):'숫자 '+t.luck.num}`,body:luckBody}];
     const stars=Array.from({length:5},(_,i)=>`<span class="${i<t.score?'':'off'}">★</span>`).join('');
     body=`<div id="captd" class="stack" style="gap:20px;background:var(--bg);padding-block:4px">
       <div class="hero">
@@ -1505,15 +1534,7 @@ function viewToday(){
         <span class="small muted">${gzText(t.pillar)}일 · ${esc(P.name)} 님에게 ${t.pillar.stemTG}의 날</span>
         <span class="stars" aria-label="운세 ${t.score}점 (5점 만점)">${stars}</span>
       </div>
-      <div class="cats nocap" role="tablist" aria-label="운세 항목">${cats.map(c=>`<button role="tab" data-cat="${c}" aria-selected="${c===cat}">${c}</button>`).join('')}</div>
-      <div class="catpanel" role="tabpanel">
-        ${cat==='행운'?`${secTitle('행운',`부족한 ${E.EL_K[t.luck.el]}(${E.EL_H[t.luck.el]}) 기운을 채워 주는 것들`)}
-          <div class="luck"><div><b>${t.luck.color}</b><span>색</span></div><div><b>${t.luck.dir}</b><span>방향</span></div><div><b>${t.luck.num}</b><span>숫자</span></div></div>
-          <h4 class="subh">좋은 시간</h4><p>${t.luck.good.length?`${t.luck.good.join(', ')}에 중요한 연락이나 결정을 하면 좋아요.`:'오늘은 특별히 기운이 몰리는 낮 시간대가 없어요. 컨디션이 좋은 때를 골라 움직이세요.'}</p>
-          ${t.luck.bad.length?`<h4 class="subh">조심할 시간</h4><p>${t.luck.bad.join(', ')}에는 일지와 부딪히는 기운이 들어와요. 큰 결정과 다툼은 피하세요.</p>`:''}
-          <h4 class="subh">오늘 해 보면 좋은 것</h4><p>${esc(t.luck.act)} 같은 활동이 오늘의 기운을 채워 줘요. 음식은 ${esc(t.luck.food)} 쪽이 잘 맞아요.</p>`
-        :(()=>{const s=t.sections.find(x=>x.title===cat);return secTitle(s.title,s.head)+parasHTML(s.paras)})()}
-      </div>
+      ${accHTML(todayItems,S.todayCat,'cat')}
       <p class="capfoot">萬歲曆 · 우리끼리 만세력</p></div>
       <div class="row nocap"><button class="btn" data-act="saveImg" data-target="captd">이미지 저장</button></div>`;
   }
@@ -1569,8 +1590,12 @@ document.addEventListener('click',e=>{
   if(d.tab){const again=t.hasAttribute('aria-current')&&!S.showSettings;S.tab=d.tab;S.showSettings=false;if(S.view==='form'){S.view=S.cur?'result':'list';S.edit=null}if(d.tab==='people'&&again)S.view='list';render();window.scrollTo(0,0);return}
   if(d.open){S.cur=d.open;S.view='result';S.yearSel=null;S.confirmDel=false;render();window.scrollTo(0,0);return}
   if(d.year){const sl=$('#seun').scrollLeft;S.yearSel=+d.year;const x=window.scrollY;render();$('#seun').scrollLeft=sl;window.scrollTo(0,x);return}
-  if(d.cat){S.todayCat=d.cat;const x=window.scrollY;render();window.scrollTo(0,x);return}
-  if(d.nat||d.ycat){if(d.nat)S.natCat=d.nat;else S.yearCat=d.ycat;const sl=$('#seun')?$('#seun').scrollLeft:0;const x=window.scrollY;render();if($('#seun'))$('#seun').scrollLeft=sl;window.scrollTo(0,x);return}
+  if(d.cat||d.nat||d.ycat){
+    const attr=d.cat?'cat':d.nat?'nat':'ycat',key=d[attr],field={cat:'todayCat',nat:'natCat',ycat:'yearCat'}[attr];
+    const before=t.getBoundingClientRect().top;const sl=$('#seun')?$('#seun').scrollLeft:0;
+    S[field]=S[field]===key?null:key;render();if($('#seun'))$('#seun').scrollLeft=sl;
+    const nb=document.querySelector(`[data-${attr}="${CSS.escape(key)}"]`);if(nb){window.scrollBy(0,nb.getBoundingClientRect().top-before)}
+    return}
   if(d.a){S.ghA=d.a;render();return} if(d.b){S.ghB=d.b;render();return} if(d.t){S.todayId=d.t;render();return}
   if(d.info){S.info[d.info]=!S.info[d.info];const x=window.scrollY;render();window.scrollTo(0,x);return}
   if(d.sw){S.settings[d.sw]=!S.settings[d.sw];save();render();return}
